@@ -87,6 +87,9 @@ def read_category():
 
     categories = [native_content(x) for x in categories]
 
+    # zip：转换成元组
+    # dict：将元组转换成字典，类似：{'a': 0, 'c': 2, 'b': 1}
+    # 这里的作用是将类别使用整数来表示
     cat_to_id = dict(zip(categories, range(len(categories))))
 
     return categories, cat_to_id

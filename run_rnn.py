@@ -76,6 +76,10 @@ def train():
     print("Loading training and validation data...")
     # 载入训练集与验证集
     start_time = time.time()
+    # x 是id的集合
+    # 比如 x = [单词1的id, 单词5的id，单词1的id，单词3的id，单词n的id。。。]
+    # y 是 one-hot 表示的类别
+    # 比如 y = [0,1,0,0,0,0]
     x_train, y_train = process_file(train_dir, word_to_id, cat_to_id, config.seq_length)
     x_val, y_val = process_file(val_dir, word_to_id, cat_to_id, config.seq_length)
     time_dif = get_time_dif(start_time)
@@ -96,19 +100,27 @@ def train():
     flag = False
     for epoch in range(config.num_epochs):
         print('Epoch:', epoch + 1)
+        # 将所有的数据进行分批，每一Epoch都会将所有的批次训练完
         batch_train = batch_iter(x_train, y_train, config.batch_size)
         for x_batch, y_batch in batch_train:
+            # 逐批进行训练
+
+            # 喂养数据给tf的Variable，x y dropout
             feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
 
             if total_batch % config.save_per_batch == 0:
                 # 每多少轮次将训练结果写入tensorboard scalar
+                # 记录图表，只需要loss和acc，为什么还需要原始数据？
                 s = session.run(merged_summary, feed_dict=feed_dict)
                 writer.add_summary(s, total_batch)
 
             if total_batch % config.print_per_batch == 0:
                 # 每多少轮次输出在训练集和验证集上的性能
+                # 验证过程需要保留所有的数据
                 feed_dict[model.keep_prob] = 1.0
+                # 在训练集上验证一次
                 loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
+                # 在测试集上验证一次
                 loss_val, acc_val = evaluate(session, x_val, y_val)  # todo
 
                 if acc_val > best_acc_val:
@@ -116,6 +128,7 @@ def train():
                     best_acc_val = acc_val
                     last_improved = total_batch
                     saver.save(sess=session, save_path=save_path)
+                    # 如果结果相对历史情况，有所提升，则标志 *
                     improved_str = '*'
                 else:
                     improved_str = ''
@@ -125,6 +138,7 @@ def train():
                       + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, Time: {5} {6}'
                 print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, time_dif, improved_str))
 
+            # Training
             session.run(model.optim, feed_dict=feed_dict)  # 运行优化
             total_batch += 1
 
@@ -148,6 +162,7 @@ def test():
     saver.restore(sess=session, save_path=save_path)  # 读取保存的模型
 
     print('Testing...')
+    # 在测试集上验证一次
     loss_test, acc_test = evaluate(session, x_test, y_test)
     msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
     print(msg.format(loss_test, acc_test))
@@ -156,6 +171,7 @@ def test():
     data_len = len(x_test)
     num_batch = int((data_len - 1) / batch_size) + 1
 
+    # 提取测试集类别下标
     y_test_cls = np.argmax(y_test, 1)
     y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32)  # 保存预测结果
     for i in range(num_batch):  # 逐批次处理
@@ -169,7 +185,7 @@ def test():
 
     # 评估
     print("Precision, Recall and F1-Score...")
-    print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
+    #print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
 
     # 混淆矩阵
     print("Confusion Matrix...")
@@ -187,10 +203,15 @@ if __name__ == '__main__':
     print('Configuring RNN model...')
     config = TRNNConfig()
     if not os.path.exists(vocab_dir):  # 如果不存在词汇表，重建
+        # 此函数可能有问题，请修正或者使用作者提供的现成词汇表
         build_vocab(train_dir, vocab_dir, config.vocab_size)
+    #读取类别id
     categories, cat_to_id = read_category()
+    #读取词汇id
     words, word_to_id = read_vocab(vocab_dir)
+    #设置词汇表大小
     config.vocab_size = len(words)
+    #读取模型
     model = TextRNN(config)
 
     if sys.argv[1] == 'train':

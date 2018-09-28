@@ -82,10 +82,12 @@ class TextRNN(object):
             fc = tf.nn.relu(fc)
 
             # 分类器
-            # dense() 新建一个分类器层，只有经过整流之后，才能进行分类。dense需要一个整流后的输入和一个分类列表，输出对应的x在每一个类别y上的概率值
+            # dense() 新建一个分类器层，只有经过整流之后，才能进行分类。dense需要一个整流后的输入和一个分类列表。
+            # softmax函数能将输出转换成对应的x在每一个类别y上的概率值
             # 比如：[0.9, 0.05, 0.03, 0.02, 0, 0]
             self.logits = tf.layers.dense(fc, self.config.num_classes, name='fc2')
             # 取最大值，只取最大的概率作为最后的分类结果
+            # y_pred_cls = [1,4,6...]，表示对于输入的 x，对于的分类结果分别为第1类，第4类，第6类等等
             self.y_pred_cls = tf.argmax(tf.nn.softmax(self.logits), 1)  # 预测类别
 
         with tf.name_scope("optimize"):
@@ -99,6 +101,7 @@ class TextRNN(object):
         with tf.name_scope("accuracy"):
             # 准确率
             # 对比预测与输入是否相同，相同返回True，否则返回False
+            # 通过argmax提取分类下标，如果下标相同，表示类别相同
             correct_pred = tf.equal(tf.argmax(self.input_y, 1), self.y_pred_cls)
             # 将True和False转换为Float32，也就是1.0或者0.0
             # 求所有1.0 和 0.0 的平均值，平均值越大（越接近1），表示准确性越高
