@@ -1,6 +1,6 @@
 # Text Classification with CNN and RNN
 
-使用卷积神经网络以及循环神经网络进行中文文本分类
+使用卷积神经网络以及循环神经网络进行应用分类
 
 CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sentence Classification](https://arxiv.org/abs/1408.5882)
 
@@ -22,29 +22,10 @@ CNN做句子分类的论文可以参看: [Convolutional Neural Networks for Sent
 
 ## 数据集
 
-使用THUCNews的一个子集进行训练与测试，数据集请自行到[THUCTC：一个高效的中文文本分类工具包](http://thuctc.thunlp.org/)下载，请遵循数据提供方的开源协议。
+使用应用的使用记录进行训练与测试，数据集需要自行收集，收集方式可以参考[Android Demo]()
 
-本次训练使用了其中的10个分类，每个分类6500条数据。
-
-类别如下：
-
-```
-体育, 财经, 房产, 家居, 教育, 科技, 时尚, 时政, 游戏, 娱乐
-```
-
-这个子集可以在此下载：链接: https://pan.baidu.com/s/1hugrfRu 密码: qfud
-
-数据集划分如下：
-
-- 训练集: 5000*10
-- 验证集: 500*10
-- 测试集: 1000*10
-
-从原数据集生成子集的过程请参看`helper`下的两个脚本。其中，`copy_data.sh`用于从每个分类拷贝6500个文件，`cnews_group.py`用于将多个文件整合到一个文件中。执行该文件后，得到三个数据文件：
-
-- cnews.train.txt: 训练集(50000条)
-- cnews.val.txt: 验证集(5000条)
-- cnews.test.txt: 测试集(10000条)
+本次训练将应用分成2类，第一类：一定条件下会被用户运行，第二类：一定条件下不会被用户运行。
+依据一定条件下可能被运行的概率进行排序，将前3个应用分为第一类，其它应用分为第二类。
 
 ## 预处理
 

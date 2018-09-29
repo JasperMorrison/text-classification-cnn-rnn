@@ -12,16 +12,12 @@ import numpy as np
 import tensorflow as tf
 from sklearn import metrics
 
-from cnn_model import TCNNConfig, TextCNN
-from data.cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
+from cnn2_model import TCNNConfig, TextCNN
+from data.app_history_loader import *
 
-base_dir = 'data/cnews'
-train_dir = os.path.join(base_dir, 'cnews.train.txt')
-test_dir = os.path.join(base_dir, 'cnews.test.txt')
-val_dir = os.path.join(base_dir, 'cnews.val.txt')
-vocab_dir = os.path.join(base_dir, 'cnews.vocab.txt')
+base_dir = 'data/cnews_app_history'
 
-save_dir = 'checkpoints/textcnn'
+save_dir = 'checkpoints/appcnn'
 save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
 
 
@@ -77,8 +73,8 @@ def train():
     print("Loading training and validation data...")
     # 载入训练集与验证集
     start_time = time.time()
-    x_train, y_train = process_file(train_dir, word_to_id, cat_to_id, config.seq_length)
-    x_val, y_val = process_file(val_dir, word_to_id, cat_to_id, config.seq_length)
+    x_train, y_train = process_history_file(base_dir, "train", config)
+    x_val, y_val = process_history_file(base_dir, "val", config)
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
@@ -141,7 +137,7 @@ def train():
 def test():
     print("Loading test data...")
     start_time = time.time()
-    x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
+    x_test, y_test = process_history_file(base_dir, "val", config)
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
@@ -186,12 +182,10 @@ if __name__ == '__main__':
         raise ValueError("""usage: python run_cnn.py [train / test]""")
 
     print('Configuring CNN model...')
-    config = TCNNConfig()
-    if not os.path.exists(vocab_dir):  # 如果不存在词汇表，重建
-        build_vocab(train_dir, vocab_dir, config.vocab_size)
-    categories, cat_to_id = read_category()
-    words, word_to_id = read_vocab(vocab_dir)
-    config.vocab_size = len(words)
+    if sys.argv[1] == 'train':
+        config = TCNNConfig(True)
+    else:
+        config = TCNNConfig()
     model = TextCNN(config)
 
     if sys.argv[1] == 'train':
