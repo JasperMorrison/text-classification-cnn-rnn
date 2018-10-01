@@ -11,6 +11,7 @@ base_dir = 'data/cnews_app_history'
 pkgs_id_file = 'data/app_info/app_pkgs.txt'
 care_actions = ["MOVE_TO_FOREGROUND"]
 history_num = 5
+other_num = 2
 pkgs = {}
 train_per = 0.8
 test_per = 0.1
@@ -129,7 +130,7 @@ def put_hot(apps):
         r.append([app, 0]) # no hot data now
     return r
     
-def parse_history(q, l):
+def parse_history(q, l, num_classes):
     pkg_id,date,action_id = parse_line(l)
     if pkg_id is None:
         return None,None
@@ -145,15 +146,26 @@ def parse_history(q, l):
     history.append([hour_in_day(date),is_work_day(date)])
     history.extend(put_hot(pre_pkg_ids))
     '''
+    
     history = []
     history.extend([hour_in_day(date),is_work_day(date)])
     history.extend(pre_pkg_ids)
     
+    '''
+    ids_pads = [0] * num_classes
+    for id in pre_pkg_ids:
+        ids_pads[id] += 1
+    
+    history = []
+    history.extend([hour_in_day(date),is_work_day(date)])
+    history.extend(ids_pads)
+    '''
+    
     return history, pkg_id
 
-def read_files(dir, begin, end):
+def read_files(dir, begin, end, num_classes):
     contents, labels = [], []
-    queue = [None, None, None, None, None]
+    queue = [None] * history_num
     list = os.listdir(dir)
     list.sort()
     begin = int(round(len(list) * begin))
@@ -162,14 +174,14 @@ def read_files(dir, begin, end):
     for i in list:
         path = dir + "/" + i
         if os.path.isfile(path) and i.isdigit():
-            cs, ls = read_file(path, queue)
+            cs, ls = read_file(path, queue, num_classes)
             if len(cs) != 0:
                 contents.extend(cs)
                 labels.extend(ls)
 
     return contents, labels
 
-def read_file(filename, queue):
+def read_file(filename, queue, num_classes):
     """读取文件数据"""
     contents, labels = [], []
 
@@ -177,7 +189,7 @@ def read_file(filename, queue):
         f.next() # do not need first line
         for line in f:
             line = line.strip()
-            content, label = parse_history(queue, line)
+            content, label = parse_history(queue, line, num_classes)
             if not content is None:
                 contents.append(content)
                 labels.append(label)
@@ -227,9 +239,50 @@ def to_words(content, words):
     return ''.join(words[x] for x in content)
 
 data_type = ["train", "test", "val"]
+global_contents = []
+global_labels = []
+global_indices = []
+global_xpad = []
+global_ypad = []
+
 def process_history_file(dir, type, config):
+    global data_type
+    global global_contents
+    global global_indices
+    global global_labels
+    global global_xpad
+    global global_ypad
+    
     if not type in data_type:
         raise ValueError('''Unknown data type''')
+    
+    if len(global_contents) == 0:
+        global_contents, global_labels = read_files(dir, 0.0, 1.0, config.num_classes)
+        global_xpad = kr.preprocessing.sequence.pad_sequences(global_contents, config.seq_length)
+        global_ypad = kr.utils.to_categorical(global_labels, num_classes=config.num_classes)  # 将标签转换为one-hot表示
+        global_indices = np.random.permutation(np.arange(len(global_ypad)))
+    
+    x_pad = global_xpad
+    y_pad = global_ypad
+    
+    print "global xxxx ", global_contents[0:10]
+    print "global yyy", global_labels[0:10]
+    '''
+    print "====XXXX:", x_pad[0:10]
+    print "====YYYY:", y_pad[0:10]
+    '''
+    
+    y_in = []
+    for i in range(len(global_labels)):
+        y = global_labels[i]
+        if y in global_contents[i]:
+            y_in.append(1)
+        else:
+            y_in.append(0)
+    
+    print(y_in.count(1), len(y_in), y_in.count(1) * 1.0 / len(y_in) )
+    
+    
     begin = 0.0
     file_per = train_per
     if type == "train":
@@ -242,12 +295,14 @@ def process_history_file(dir, type, config):
         begin = train_per + test_per
         file_per = 1.0
     
-    c,l = read_files(dir, begin, file_per)
+    begin = int(round(len(global_indices) * begin))
+    end = int(round(len(global_indices) * file_per))
     
-    x_pad = kr.preprocessing.sequence.pad_sequences(c, config.seq_length)
-    y_pad = kr.utils.to_categorical(l, num_classes=config.num_classes)  # 将标签转换为one-hot表示
+    indices = global_indices[begin: end]
+    x_shuffle = x_pad[indices]
+    y_shuffle = y_pad[indices]
     
-    return x_pad,y_pad
+    return x_shuffle,y_shuffle
 
 def process_file(filename, word_to_id, cat_to_id, max_length=600):
     """将文件转换为id表示"""

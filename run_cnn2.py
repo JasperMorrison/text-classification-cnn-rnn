@@ -19,6 +19,7 @@ base_dir = 'data/cnews_app_history'
 
 save_dir = 'checkpoints/appcnn'
 save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
+test_path = os.path.join(save_dir, 'test_result')
 
 
 def get_time_dif(start_time):
@@ -88,7 +89,7 @@ def train():
     total_batch = 0  # 总批次
     best_acc_val = 0.0  # 最佳验证集准确率
     last_improved = 0  # 记录上一次提升批次
-    require_improvement = 1000  # 如果超过1000轮未提升，提前结束训练
+    require_improvement = len(x_train)/config.batch_size * 2  # 如果超过1000轮未提升，提前结束训练
 
     flag = False
     for epoch in range(config.num_epochs):
@@ -171,12 +172,21 @@ def test():
     # 混淆矩阵
     print("Confusion Matrix...")
     cm = metrics.confusion_matrix(y_test_cls, y_pred_cls)
-    print(cm)
+    #print(cm)
+    with open(test_path, 'w') as f:
+        for c in cm:
+            f.write('[')
+            f.write(list_to_str(c))
+            f.write(']\n')
+        print('save test result at ', test_path)
 
     time_dif = get_time_dif(start_time)
     print("Time usage:", time_dif)
 
+def list_to_str(a_list):
+    return "\t".join(list(map(str, a_list)))
 
+    
 if __name__ == '__main__':
     if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
         raise ValueError("""usage: python run_cnn.py [train / test]""")
