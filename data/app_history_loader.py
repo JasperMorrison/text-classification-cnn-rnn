@@ -308,7 +308,7 @@ def process_history_file(dir, type, config):
                 y_in.append(1)
             else:
                 y_in.append(0)
-        print 'In pre: %d, Not in pre: %d, In pre per: %.2f %%' % (y_in.count(1), len(y_in), y_in.count(1) * 1.0 / len(y_in) * 100)
+        print 'In pre: %d, Total: %d, In pre per: %.2f %%' % (y_in.count(1), len(y_in), y_in.count(1) * 1.0 / len(y_in) * 100)
     
     x_pad = global_xpad
     y_pad = global_ypad
