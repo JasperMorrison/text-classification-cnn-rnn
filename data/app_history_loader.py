@@ -9,6 +9,8 @@ import tensorflow.contrib.keras as kr
 
 base_dir = 'data/cnews_app_history'
 pkgs_id_file = 'data/app_info/app_pkgs.txt'
+holidy_file = 'data/app_info/holiday.csv'
+global_index_file = 'data/app_info/indexs.txt'
 care_actions = ["MOVE_TO_FOREGROUND"]
 history_num = 5
 other_num = 2
@@ -118,11 +120,36 @@ def parse_line(l):
 def hour_in_day(date):
     return time.strptime(date, "%Y-%m-%d %H:%M:%S").tm_hour
 
+holiday_list = []
+def check_in_file(date, is_work_day):
+    global holiday_list
+    if os.path.exists(holidy_file):
+        d_tmp = time.strptime(date, '%Y-%m-%d %H:%M:%S')
+        d_str = "{0}/{1}/{2}".format(d_tmp.tm_year, d_tmp.tm_mon, d_tmp.tm_mday)
+        if len(holiday_list) > 0:
+            if d_str in holiday_list:
+                is_work_day = False
+            return is_work_day
+            
+        with open_file(holidy_file) as f:
+            for line in f:
+                line = line.strip()
+                holiday_list.append(line)
+                if line == d_str:
+                    is_work_day = False
+    return is_work_day
+
 def is_work_day(date):
+    is_work_day = False
     day = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S').weekday()
     if day in range(5):
-        return 1
-    return 0
+        is_work_day = True
+    else:
+        is_work_day = False
+        
+    is_work_day = check_in_file(date, is_work_day)
+    
+    return is_work_day
 
 def put_hot(apps):
     r = []
@@ -245,6 +272,19 @@ global_indices = []
 global_xpad = []
 global_ypad = []
 
+def get_global_index(testing, pad):
+    index = []
+    if os.path.exists(global_index_file) and testing:
+        with open_file(global_index_file) as f:
+            index = eval(f.readline())
+    else:
+        index = np.random.permutation(np.arange(len(pad)))
+        with open_file(global_index_file, 'w') as f:
+            f.write('[')
+            f.write(",".join(list(map(str, index))))
+            f.write(']')
+    return index
+
 def process_history_file(dir, type, config):
     global data_type
     global global_contents
@@ -260,39 +300,33 @@ def process_history_file(dir, type, config):
         global_contents, global_labels = read_files(dir, 0.0, 1.0, config.num_classes)
         global_xpad = kr.preprocessing.sequence.pad_sequences(global_contents, config.seq_length)
         global_ypad = kr.utils.to_categorical(global_labels, num_classes=config.num_classes)  # 将标签转换为one-hot表示
-        global_indices = np.random.permutation(np.arange(len(global_ypad)))
+        global_indices = get_global_index(type == 'test', global_ypad)
+        y_in = []
+        for i in range(len(global_labels)):
+            y = global_labels[i]
+            if y in global_contents[i][-history_num:]:
+                y_in.append(1)
+            else:
+                y_in.append(0)
+        print 'In pre: %d, Not in pre: %d, In pre per: %.2f %%' % (y_in.count(1), len(y_in), y_in.count(1) * 1.0 / len(y_in) * 100)
     
     x_pad = global_xpad
     y_pad = global_ypad
-    
+    '''
     print "global xxxx ", global_contents[0:10]
     print "global yyy", global_labels[0:10]
     '''
-    print "====XXXX:", x_pad[0:10]
-    print "====YYYY:", y_pad[0:10]
-    '''
-    
-    y_in = []
-    for i in range(len(global_labels)):
-        y = global_labels[i]
-        if y in global_contents[i]:
-            y_in.append(1)
-        else:
-            y_in.append(0)
-    
-    print(y_in.count(1), len(y_in), y_in.count(1) * 1.0 / len(y_in) )
-    
     
     begin = 0.0
     file_per = train_per
     if type == "train":
         begin = 0.0
         file_per = train_per
-    if type == "test":
-        begin = train_per
-        file_per = begin + test_per
     if type == "val":
-        begin = train_per + test_per
+        begin = train_per
+        file_per = begin + val_per
+    if type == "test":
+        begin = train_per + val_per
         file_per = 1.0
     
     begin = int(round(len(global_indices) * begin))

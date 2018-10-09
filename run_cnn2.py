@@ -138,7 +138,7 @@ def train():
 def test():
     print("Loading test data...")
     start_time = time.time()
-    x_test, y_test = process_history_file(base_dir, "val", config)
+    x_test, y_test = process_history_file(base_dir, "test", config)
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
@@ -186,7 +186,7 @@ def test():
 def list_to_str(a_list):
     return "\t".join(list(map(str, a_list)))
 
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
         raise ValueError("""usage: python run_cnn.py [train / test]""")
