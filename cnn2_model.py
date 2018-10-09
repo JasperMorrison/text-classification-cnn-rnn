@@ -31,7 +31,7 @@ class TCNNConfig(object):
     print_per_batch = 10  # 每多少轮输出一次结果
     save_per_batch = 10  # 每多少轮存入tensorboard
 
-    in_top_num = history_num / 2 if 1 <= history_num / 2 <= 3 else 1 # 取概率最高的前k个预测结果
+    in_top_num = 5 # 取概率最高的前k个预测结果
 
 
 class TextCNN(object):
