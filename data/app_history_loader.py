@@ -90,6 +90,11 @@ def build_pkg_id(train=False):
     
     return pkgs_id
 
+def get_ids_pkgs_pair():
+    return invert_dict(build_pkg_id())
+    
+def invert_dict(d): 
+    return dict((v,k) for k,v in d.iteritems())
 
 def action_to_id(a):
     return dict(zip(care_actions, range(len(care_actions))))[a]
@@ -149,7 +154,7 @@ def is_work_day(date):
         
     is_work_day = check_in_file(date, is_work_day)
     
-    return is_work_day
+    return 1 if is_work_day is True else 0
 
 def put_hot(apps):
     r = []
