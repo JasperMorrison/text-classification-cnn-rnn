@@ -7,3 +7,5 @@ cnn_keras.py
 *.pyc
 checkpoints
 tensorboard
+data/app_info
+data/cnews_app_history
