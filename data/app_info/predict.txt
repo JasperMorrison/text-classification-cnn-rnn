@@ -1,0 +1,12 @@
+12344
+com.tencent.mm	com.tencent.mm.ui.LauncherUI	GMT+08:00	"2018-10-07 17:43:42"	1538905422384	MOVE_TO_FOREGROUND	WIFI
+com.tencent.mm	com.tencent.mm.ui.LauncherUI	GMT+08:00	"2018-10-07 17:43:44"	1538905424233	MOVE_TO_BACKGROUND	WIFI
+com.ss.android.article.news	com.ss.android.detail.feature.detail2.view.NewDetailActivity	GMT+08:00	"2018-10-07 17:36:32"	1538904992049	MOVE_TO_FOREGROUND	WIFI
+com.ss.android.article.news	com.ss.android.detail.feature.detail2.view.NewDetailActivity	GMT+08:00	"2018-10-07 17:37:45"	1538905065095	MOVE_TO_BACKGROUND	WIFI
+com.ss.android.article.news	com.ss.android.detail.feature.detail2.view.NewDetailActivity	GMT+08:00	"2018-10-07 17:39:59"	1538905199726	MOVE_TO_FOREGROUND	WIFI
+com.ss.android.article.news	com.ss.android.detail.feature.detail2.view.NewDetailActivity	GMT+08:00	"2018-10-07 17:40:29"	1538905229753	MOVE_TO_BACKGROUND	WIFI
+com.ss.android.article.news	com.ss.android.detail.feature.detail2.view.NewDetailActivity	GMT+08:00	"2018-10-07 17:43:14"	1538905394020	MOVE_TO_FOREGROUND	WIFI
+com.ss.android.article.news	com.ss.android.detail.feature.detail2.view.NewDetailActivity	GMT+08:00	"2018-10-07 17:43:22"	1538905402112	MOVE_TO_BACKGROUND	WIFI
+com.ss.android.article.news	com.ss.android.article.news.activity.MainActivity	GMT+08:00	"2018-10-07 17:43:22"	1538905402176	MOVE_TO_FOREGROUND	WIFI
+com.ss.android.article.news	com.ss.android.article.news.activity.MainActivity	GMT+08:00	"2018-10-07 17:43:36"	1538905416801	MOVE_TO_BACKGROUND	WIFI
+com.ss.android.article.news	com.ss.android.article.news.activity.MainActivity	GMT+08:00	"2018-10-07 17:43:22"	1538905402176	MOVE_TO_FOREGROUND	WIFI
